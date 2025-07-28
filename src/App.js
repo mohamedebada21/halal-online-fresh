@@ -1,492 +1,27 @@
 import React, { useState, useEffect } from 'react';
 
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// MOCK DATA (Simulates a database)
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-const initialProducts = [
-  { id: 1, name: 'Organic Watermelon', description: 'Fresh, seedless, and juicy. Perfect for summer.', category: 'Fruits', price: 5.99, stock: 100, lowStockThreshold: 10, imageUrl: 'https://placehold.co/400x400/27A659/FFFFFF?text=Watermelon' },
-  { id: 2, name: 'Halal Chicken Breast', description: '1kg pack of free-range, zabihah halal chicken.', category: 'Meats', price: 12.50, stock: 50, lowStockThreshold: 10, imageUrl: 'https://placehold.co/400x400/F23D4C/FFFFFF?text=Chicken' },
-  { id: 3, name: 'Fresh Mint Bunch', description: 'Aromatic mint for teas and culinary uses.', category: 'Herbs', price: 1.29, stock: 8, lowStockThreshold: 5, imageUrl: 'https://placehold.co/400x400/27A659/FFFFFF?text=Mint' },
-  { id: 4, name: 'Artisan Sourdough Bread', description: 'Naturally leavened, crusty, and delicious.', category: 'Bakery', price: 4.50, stock: 30, lowStockThreshold: 8, imageUrl: 'https://placehold.co/400x400/D2B48C/FFFFFF?text=Bread' },
-  { id: 5, name: 'Organic Tomatoes', description: 'Vine-ripened tomatoes, sold by the pound.', category: 'Vegetables', price: 2.99, stock: 75, lowStockThreshold: 15, imageUrl: 'https://placehold.co/400x400/F23D4C/FFFFFF?text=Tomatoes' },
-  { id: 6, name: 'Medjool Dates', description: '500g pack of premium quality Medjool dates.', category: 'Pantry', price: 8.00, stock: 40, lowStockThreshold: 5, imageUrl: 'https://placehold.co/400x400/8B4513/FFFFFF?text=Dates' },
-];
+// Import Data and Config
+import { initialProducts, initialOrders } from './data/mockData';
+import { TAX_RATE } from './config';
 
-const initialOrders = [
-    { id: 101, orderId: 'ORD-12345', items: [{ productId: 1, name: 'Organic Watermelon', quantity: 2, price: 5.99 }], totalAmount: 11.98, customerDetails: { name: 'Aisha Khan', phone: '555-123-4567', address: '123 Green St, Meadowlands' }, paymentMethod: 'cod', orderStatus: 'Pending', deliveryDate: new Date(new Date().setDate(new Date().getDate() + 1)) },
-    { id: 102, orderId: 'ORD-12346', items: [{ productId: 2, name: 'Halal Chicken Breast', quantity: 1, price: 12.50 }, { productId: 3, name: 'Fresh Mint Bunch', quantity: 1, price: 1.29 }], totalAmount: 13.79, customerDetails: { name: 'Bilal Ahmed', phone: '555-987-6543', address: '456 Red Ave, Orchard Hills' }, paymentMethod: 'stripe', paymentStatus: 'Paid', orderStatus: 'Fulfilled', deliveryDate: new Date(new Date().setDate(new Date().getDate() + 1)) },
-];
+// Import Components
+import Header from './components/layout/Header';
+import ProductList from './components/shop/ProductList';
+import CartView from './components/cart/CartView';
+import CheckoutModal from './components/checkout/CheckoutModal';
+import AdminLogin from './components/admin/AdminLogin';
+import AdminDashboard from './components/admin/AdminDashboard';
 
-
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// UI HELPER COMPONENTS
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
-// Simple Icon component for UI clarity
-const Icon = ({ name, className }) => {
-    const icons = {
-        cart: <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c.51 0 .962-.328 1.087-.835l1.858-6.493a1.125 1.125 0 00-.942-1.416H4.25L3.114 5.176A1.125 1.125 0 002.022 4.5H2.25M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c.51 0 .962-.328 1.087-.835l1.858-6.493a1.125 1.125 0 00-.942-1.416H4.25L3.114 5.176A1.125 1.125 0 002.022 4.5H2.25" />,
-        admin: <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-1.007 1.11-1.227l.26-.093c.552-.2 1.153.045 1.45.52l.298.468c.296.464.448.994.448 1.527v.923c0 .533-.152 1.064-.448 1.527l-.298.468c-.297.475-.9.72-1.45.52l-.26-.093a1.65 1.65 0 01-1.11-1.227v-2.175zM10.343 3.94c.09-.542.56-1.007 1.11-1.227l.26-.093c.552-.2 1.153.045 1.45.52l.298.468c.296.464.448.994.448 1.527v.923c0 .533-.152 1.064-.448 1.527l-.298.468c-.297.475-.9.72-1.45.52l-.26-.093a1.65 1.65 0 01-1.11-1.227v-2.175zM10.343 3.94a1.65 1.65 0 01-1.11 1.227l-.26.093c-.552.2-1.153-.045-1.45-.52l-.298-.468a2.25 2.25 0 01-.448-1.527v-.923c0-.533.152-1.064.448-1.527l.298-.468c.297-.475.9-.72 1.45-.52l.26.093a1.65 1.65 0 011.11 1.227z" />,
-        shop: <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />,
-        plus: <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />,
-        trash: <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0a48.11 48.11 0 00-7.5 0" />,
-        edit: <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />,
-        close: <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />,
-    };
-    return <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>{icons[name]}</svg>;
-};
-
-// Custom Modal component
-const Modal = ({ children, onClose, title }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 animate-fade-in">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md m-4 transform transition-all duration-300 scale-95 opacity-0 animate-scale-in">
-            <div className="p-5 border-b border-gray-200 flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-800">{title}</h3>
-                <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100">
-                    <Icon name="close" className="w-6 h-6"/>
-                </button>
-            </div>
-            <div className="p-6">
-                {children}
-            </div>
-        </div>
-    </div>
-);
-
-
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// MAIN APPLICATION COMPONENTS
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
-// Header Component
-const Header = ({ onNavigate, cartCount }) => (
-    <header className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-40 border-b border-gray-200">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-                <div className="text-3xl font-bold text-gray-800 cursor-pointer" onClick={() => onNavigate('shop')}>
-                    Halal<span className="text-green-600">Fresh</span><span className="text-red-500">🍉</span>
-                </div>
-                <nav className="flex items-center space-x-2 sm:space-x-4">
-                    <button onClick={() => onNavigate('shop')} className="flex items-center space-x-2 text-gray-500 hover:text-green-600 font-semibold transition-colors px-3 py-2 rounded-lg hover:bg-green-50">
-                        <Icon name="shop" className="w-5 h-5" />
-                        <span className="hidden sm:inline">Shop</span>
-                    </button>
-                    <button onClick={() => onNavigate('cart')} className="flex items-center space-x-2 text-gray-500 hover:text-green-600 font-semibold transition-colors relative px-3 py-2 rounded-lg hover:bg-green-50">
-                        <Icon name="cart" className="w-5 h-5" />
-                        <span className="hidden sm:inline">Cart</span>
-                        {cartCount > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">{cartCount}</span>}
-                    </button>
-                    <button onClick={() => onNavigate('admin')} className="flex items-center space-x-2 text-gray-500 hover:text-green-600 font-semibold transition-colors px-3 py-2 rounded-lg hover:bg-green-50">
-                        <Icon name="admin" className="w-5 h-5" />
-                        <span className="hidden sm:inline">Admin</span>
-                    </button>
-                </nav>
-            </div>
-        </div>
-    </header>
-);
-
-// Product Card Component
-const ProductCard = ({ product, onAddToCart }) => {
-    const isLowStock = product.stock > 0 && product.stock <= product.lowStockThreshold;
-    const isOutOfStock = product.stock === 0;
-
-    return (
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden transform hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
-            <div className="relative">
-                <img src={product.imageUrl} alt={product.name} className="w-full h-48 object-cover" onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/400x400/cccccc/FFFFFF?text=Image+Not+Found'; }}/>
-                {isLowStock && !isOutOfStock && <span className="absolute top-3 left-3 bg-yellow-400 text-yellow-900 text-xs font-bold px-2.5 py-1 rounded-full">Low Stock</span>}
-                {isOutOfStock && <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">Out of Stock</span>}
-            </div>
-            <div className="p-5 flex flex-col flex-grow">
-                <h3 className="text-lg font-bold text-gray-800 truncate">{product.name}</h3>
-                <p className="text-gray-500 text-sm mt-1 flex-grow h-10">{product.description}</p>
-                <div className="flex justify-between items-center mt-4">
-                    <p className="text-2xl font-black text-green-600">${product.price.toFixed(2)}</p>
-                    <button 
-                        onClick={() => onAddToCart(product)}
-                        disabled={isOutOfStock}
-                        className={`px-5 py-2.5 rounded-lg font-bold text-sm text-white transition-all duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600 focus:ring-red-500 transform hover:scale-105'}`}
-                    >
-                        {isOutOfStock ? 'Sold Out' : 'Add to Cart'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// Product List Component
-const ProductList = ({ products, onAddToCart }) => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {products.map(product => (
-            <ProductCard key={product.id} product={product} onAddToCart={onAddToCart} />
-        ))}
-    </div>
-);
-
-// Cart View Component
-const CartView = ({ cartItems, onUpdateQuantity, onRemoveItem, onCheckout }) => {
-    const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-    return (
-        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 max-w-4xl mx-auto">
-            <h2 className="text-3xl font-extrabold text-gray-800 mb-6 border-b pb-4">Your Shopping Cart</h2>
-            {cartItems.length === 0 ? (
-                <div className="text-center py-12">
-                    <Icon name="cart" className="w-16 h-16 mx-auto text-gray-300" />
-                    <p className="text-gray-500 mt-4 text-lg">Your cart is empty.</p>
-                    <p className="text-gray-400">Looks like you haven't added anything to your cart yet.</p>
-                </div>
-            ) : (
-                <div>
-                    <div className="divide-y divide-gray-200">
-                        {cartItems.map(item => (
-                            <div key={item.id} className="flex flex-col sm:flex-row items-center justify-between py-4 gap-4">
-                                <div className="flex items-center space-x-4 flex-grow">
-                                    <img src={item.imageUrl} alt={item.name} className="w-20 h-20 rounded-lg object-cover shadow-sm" />
-                                    <div>
-                                        <h3 className="font-bold text-gray-800 text-lg">{item.name}</h3>
-                                        <p className="text-gray-500">${item.price.toFixed(2)}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center space-x-4 sm:space-x-6">
-                                    <div className="flex items-center border rounded-lg">
-                                        <button onClick={() => onUpdateQuantity(item.id, item.quantity - 1)} className="px-3 py-1 text-xl font-bold text-gray-600 hover:bg-gray-100 rounded-l-lg transition">-</button>
-                                        <span className="px-5 py-1 text-gray-800 font-semibold">{item.quantity}</span>
-                                        <button onClick={() => onUpdateQuantity(item.id, item.quantity + 1)} className="px-3 py-1 text-xl font-bold text-gray-600 hover:bg-gray-100 rounded-r-lg transition">+</button>
-                                    </div>
-                                    <p className="font-bold w-24 text-right text-lg">${(item.price * item.quantity).toFixed(2)}</p>
-                                    <button onClick={() => onRemoveItem(item.id)} className="text-gray-400 hover:text-red-500 transition p-1 rounded-full hover:bg-gray-100">
-                                        <Icon name="trash" className="w-6 h-6" />
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="mt-8 pt-6 border-t-2 border-dashed">
-                        <div className="flex justify-end items-center">
-                            <div className="text-right">
-                                <p className="text-gray-500">Subtotal</p>
-                                <p className="text-3xl font-extrabold text-gray-800">${total.toFixed(2)}</p>
-                                <p className="text-sm text-gray-400">Taxes and shipping calculated at checkout.</p>
-                            </div>
-                        </div>
-                         <div className="mt-6 flex justify-end">
-                            <button onClick={onCheckout} className="w-full sm:w-auto bg-green-600 text-white font-bold py-3 px-10 rounded-lg shadow-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                Proceed to Checkout
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-// Checkout Modal Component
-const CheckoutModal = ({ onClose, onPlaceOrder, total }) => {
-    const [customerDetails, setCustomerDetails] = useState({ name: '', phone: '', address: '' });
-    const [paymentMethod, setPaymentMethod] = useState('cod');
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setCustomerDetails(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (customerDetails.name && customerDetails.phone && customerDetails.address) {
-            onPlaceOrder({ customerDetails, paymentMethod });
-        } else {
-            alert('Please fill in all delivery details.');
-        }
-    };
-
-    return (
-        <Modal onClose={onClose} title="Complete Your Order">
-            <form onSubmit={handleSubmit}>
-                <h4 className="text-lg font-bold mb-4 text-gray-700">1. Delivery Details</h4>
-                <div className="space-y-4">
-                    <input type="text" name="name" placeholder="Full Name" value={customerDetails.name} onChange={handleInputChange} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition" required />
-                    <input type="tel" name="phone" placeholder="Phone Number" value={customerDetails.phone} onChange={handleInputChange} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition" required />
-                    <input type="text" name="address" placeholder="Delivery Address" value={customerDetails.address} onChange={handleInputChange} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition" required />
-                </div>
-
-                <h4 className="text-lg font-bold mt-8 mb-4 text-gray-700">2. Payment Method</h4>
-                <div className="space-y-3">
-                    <label className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition ${paymentMethod === 'cod' ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}>
-                        <input type="radio" name="paymentMethod" value="cod" checked={paymentMethod === 'cod'} onChange={(e) => setPaymentMethod(e.target.value)} className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300" />
-                        <span className="ml-3 font-semibold text-gray-800">Cash on Delivery (COD)</span>
-                    </label>
-                    <label className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition ${paymentMethod === 'stripe' ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}>
-                        <input type="radio" name="paymentMethod" value="stripe" checked={paymentMethod === 'stripe'} onChange={(e) => setPaymentMethod(e.target.value)} className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300" />
-                        <span className="ml-3 font-semibold text-gray-800">Credit/Debit Card (Stripe)</span>
-                        <span className="ml-auto text-sm text-gray-500">(Not implemented)</span>
-                    </label>
-                </div>
-
-                <div className="mt-8">
-                    <button type="submit" className="w-full bg-green-600 text-white font-bold py-3.5 px-8 rounded-lg shadow-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                        Place Order for ${total.toFixed(2)}
-                    </button>
-                </div>
-            </form>
-        </Modal>
-    );
-};
-
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// ADMIN COMPONENTS
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
-// Admin: Login View
-const AdminLogin = ({ onLogin }) => {
-    const [password, setPassword] = useState('');
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (password) { onLogin(); }
-    };
-
-    return (
-        <div className="max-w-md mx-auto mt-12 bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-3xl font-bold text-center text-gray-800 mb-2">Admin Access</h2>
-            <p className="text-center text-gray-500 mb-8">Please enter your password to continue.</p>
-            <form onSubmit={handleSubmit}>
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
-                />
-                <button type="submit" className="w-full mt-6 bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                    Login
-                </button>
-            </form>
-        </div>
-    );
-};
-
-// Admin: Product Management
-const ProductManagement = ({ products, onSaveProduct, onDeleteProduct }) => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingProduct, setEditingProduct] = useState(null);
-
-    const handleOpenModal = (product = null) => {
-        setEditingProduct(product || { name: '', description: '', category: '', price: '', stock: '', lowStockThreshold: '', imageUrl: '' });
-        setIsModalOpen(true);
-    };
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setEditingProduct(null);
-    };
-
-    const handleSave = (productData) => {
-        onSaveProduct(productData);
-        handleCloseModal();
-    };
-    
-    const ProductForm = ({ product, onSave, onCancel }) => {
-        const [formData, setFormData] = useState(product);
-        const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-        const handleSubmit = (e) => { e.preventDefault(); onSave(formData); };
-
-        return (
-            <Modal onClose={onCancel} title={product.id ? 'Edit Product' : 'Add New Product'}>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <input name="name" value={formData.name} onChange={handleChange} placeholder="Product Name" className="w-full p-3 border border-gray-300 rounded-lg" required />
-                    <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Description" className="w-full p-3 border border-gray-300 rounded-lg" required />
-                    <div className="grid grid-cols-2 gap-4">
-                        <input name="category" value={formData.category} onChange={handleChange} placeholder="Category" className="w-full p-3 border border-gray-300 rounded-lg" required />
-                        <input name="price" type="number" step="0.01" value={formData.price} onChange={handleChange} placeholder="Price" className="w-full p-3 border border-gray-300 rounded-lg" required />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <input name="stock" type="number" value={formData.stock} onChange={handleChange} placeholder="Stock" className="w-full p-3 border border-gray-300 rounded-lg" required />
-                        <input name="lowStockThreshold" type="number" value={formData.lowStockThreshold} onChange={handleChange} placeholder="Low Stock Threshold" className="w-full p-3 border border-gray-300 rounded-lg" required />
-                    </div>
-                    <input name="imageUrl" value={formData.imageUrl} onChange={handleChange} placeholder="Image URL" className="w-full p-3 border border-gray-300 rounded-lg" />
-                    <div className="flex justify-end space-x-4 pt-4">
-                        <button type="button" onClick={onCancel} className="px-6 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 font-semibold transition">Cancel</button>
-                        <button type="submit" className="px-6 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 font-bold transition">Save Product</button>
-                    </div>
-                </form>
-            </Modal>
-        );
-    };
-
-    return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200/80">
-            <div className="flex justify-between items-center mb-5">
-                <h3 className="text-xl font-bold text-gray-800">Product Management</h3>
-                <button onClick={() => handleOpenModal()} className="bg-green-600 text-white font-bold py-2 px-4 rounded-lg flex items-center space-x-2 hover:bg-green-700 transition-colors shadow-sm">
-                    <Icon name="plus" className="w-5 h-5" />
-                    <span>Add Product</span>
-                </button>
-            </div>
-            <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left text-gray-600">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                        <tr>
-                            <th scope="col" className="px-6 py-3">Name</th>
-                            <th scope="col" className="px-6 py-3">Category</th>
-                            <th scope="col" className="px-6 py-3 text-right">Price</th>
-                            <th scope="col" className="px-6 py-3 text-center">Stock</th>
-                            <th scope="col" className="px-6 py-3 text-center">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                        {products.map(p => (
-                            <tr key={p.id} className="bg-white hover:bg-gray-50/50 transition">
-                                <td className="px-6 py-4 font-medium text-gray-900">{p.name}</td>
-                                <td className="px-6 py-4">{p.category}</td>
-                                <td className="px-6 py-4 text-right">${p.price.toFixed(2)}</td>
-                                <td className="px-6 py-4 text-center">{p.stock}</td>
-                                <td className="px-6 py-4 flex justify-center space-x-3">
-                                    <button onClick={() => handleOpenModal(p)} className="text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-100 transition"><Icon name="edit" className="w-5 h-5"/></button>
-                                    <button onClick={() => onDeleteProduct(p.id)} className="text-red-600 hover:text-red-800 p-1 rounded-full hover:bg-red-100 transition"><Icon name="trash" className="w-5 h-5"/></button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-            {isModalOpen && <ProductForm product={editingProduct} onSave={handleSave} onCancel={handleCloseModal} />}
-        </div>
-    );
-};
-
-// Admin: Order Management
-const OrderManagement = ({ orders, onUpdateOrderStatus }) => (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200/80">
-        <h3 className="text-xl font-bold text-gray-800 mb-5">Order Fulfillment</h3>
-        <div className="space-y-4">
-            {orders.sort((a, b) => b.id - a.id).map(order => (
-                <div key={order.id} className="bg-gray-50/70 rounded-lg p-4 border border-gray-200">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <p className="font-bold text-md text-gray-900">{order.orderId}</p>
-                            <p className="text-sm text-gray-500">{order.customerDetails.name} - {order.customerDetails.address}</p>
-                            <p className="text-sm text-gray-500">Delivery: {order.deliveryDate.toLocaleDateString()}</p>
-                        </div>
-                        <div className="text-right flex-shrink-0">
-                           <p className="font-bold text-lg text-green-600">${order.totalAmount.toFixed(2)}</p>
-                           <p className={`text-xs font-semibold px-2 py-0.5 rounded-full inline-block ${order.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{order.paymentMethod.toUpperCase()} - {order.paymentStatus || 'Pending'}</p>
-                        </div>
-                    </div>
-                    <div className="mt-4 border-t pt-3">
-                        <ul className="text-sm space-y-1 text-gray-600">
-                            {order.items.map(item => (
-                                <li key={item.productId}><span className="font-semibold">{item.quantity}x</span> {item.name}</li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div className="mt-4 flex justify-end items-center space-x-4">
-                        <span className={`px-3 py-1 text-sm font-bold rounded-full ${order.orderStatus === 'Fulfilled' ? 'bg-green-200 text-green-900' : 'bg-yellow-200 text-yellow-900'}`}>{order.orderStatus}</span>
-                        {order.orderStatus === 'Pending' && (
-                            <button onClick={() => onUpdateOrderStatus(order.id, 'Fulfilled')} className="bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition shadow-sm">
-                                Mark as Fulfilled
-                            </button>
-                        )}
-                    </div>
-                </div>
-            ))}
-        </div>
-    </div>
-);
-
-// Admin: Inventory Management
-const InventoryManagement = ({ products }) => (
-     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200/80">
-        <h3 className="text-xl font-bold text-gray-800 mb-5">Inventory Overview</h3>
-        <div className="overflow-hidden">
-            <table className="w-full text-sm text-left text-gray-600">
-                <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                    <tr>
-                        <th scope="col" className="px-6 py-3">Product</th>
-                        <th scope="col" className="px-6 py-3 text-center">Stock Level</th>
-                        <th scope="col" className="px-6 py-3">Status</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y">
-                    {products.sort((a,b) => a.stock - b.stock).map(p => {
-                        const isLowStock = p.stock > 0 && p.stock <= p.lowStockThreshold;
-                        const isOutOfStock = p.stock === 0;
-                        let statusClasses = 'bg-green-100 text-green-800';
-                        let statusText = 'In Stock';
-                        if (isLowStock) { statusClasses = 'bg-yellow-100 text-yellow-800'; statusText = 'Low Stock'; }
-                        if (isOutOfStock) { statusClasses = 'bg-red-100 text-red-800'; statusText = 'Out of Stock'; }
-
-                        return (
-                            <tr key={p.id} className="bg-white hover:bg-gray-50/50 transition">
-                                <td className="px-6 py-4 font-medium text-gray-900">{p.name}</td>
-                                <td className="px-6 py-4 text-center font-mono font-bold text-lg">{p.stock}</td>
-                                <td className="px-6 py-4">
-                                    <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${statusClasses}`}>{statusText}</span>
-                                </td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </table>
-        </div>
-    </div>
-);
-
-
-// Admin Dashboard Container
-const AdminDashboard = ({ products, orders, onSaveProduct, onDeleteProduct, onUpdateOrderStatus, onLogout }) => {
-    const [activeTab, setActiveTab] = useState('products');
-
-    const renderContent = () => {
-        switch (activeTab) {
-            case 'orders': return <OrderManagement orders={orders} onUpdateOrderStatus={onUpdateOrderStatus} />;
-            case 'inventory': return <InventoryManagement products={products} />;
-            case 'products': default: return <ProductManagement products={products} onSaveProduct={onSaveProduct} onDeleteProduct={onDeleteProduct} />;
-        }
-    };
-
-    return (
-        <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-                <div>
-                    <h2 className="text-3xl font-extrabold text-gray-800">Admin Dashboard</h2>
-                    <p className="text-gray-500 mt-1">Manage your store's products, orders, and inventory.</p>
-                </div>
-                <button onClick={onLogout} className="mt-4 md:mt-0 bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition shadow-sm">Logout</button>
-            </div>
-            <div className="flex flex-col lg:flex-row gap-8">
-                <aside className="lg:w-1/4">
-                    <nav className="flex flex-row lg:flex-col space-x-1 lg:space-x-0 lg:space-y-1 bg-gray-100 p-2 rounded-xl">
-                        <button onClick={() => setActiveTab('products')} className={`w-full text-left px-4 py-2.5 rounded-lg font-semibold transition text-sm ${activeTab === 'products' ? 'bg-white text-green-700 shadow-sm' : 'text-gray-600 hover:bg-white/60 hover:text-green-700'}`}>Products</button>
-                        <button onClick={() => setActiveTab('orders')} className={`w-full text-left px-4 py-2.5 rounded-lg font-semibold transition text-sm ${activeTab === 'orders' ? 'bg-white text-green-700 shadow-sm' : 'text-gray-600 hover:bg-white/60 hover:text-green-700'}`}>Orders</button>
-                        <button onClick={() => setActiveTab('inventory')} className={`w-full text-left px-4 py-2.5 rounded-lg font-semibold transition text-sm ${activeTab === 'inventory' ? 'bg-white text-green-700 shadow-sm' : 'text-gray-600 hover:bg-white/60 hover:text-green-700'}`}>Inventory</button>
-                    </nav>
-                </aside>
-                <main className="flex-1">
-                    {renderContent()}
-                </main>
-            </div>
-        </div>
-    );
-};
-
-
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// MAIN APP COMPONENT
-//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-export default function App() {
-    // STATE MANAGEMENT
-    const [view, setView] = useState('shop'); // shop, cart, admin
+function App() {
+    const [view, setView] = useState('shop');
     const [products, setProducts] = useState(initialProducts);
     const [cartItems, setCartItems] = useState([]);
     const [orders, setOrders] = useState(initialOrders);
     const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
     const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+    const [checkoutTotal, setCheckoutTotal] = useState(0);
     const [notification, setNotification] = useState('');
 
-    // Notification Effect
     useEffect(() => {
         if (notification) {
             const timer = setTimeout(() => setNotification(''), 3000);
@@ -494,7 +29,11 @@ export default function App() {
         }
     }, [notification]);
 
-    // HANDLERS
+    // ... (All the handle... functions from the previous version go here) ...
+    // handleNavigate, handleAddToCart, handleUpdateCartQuantity, handleRemoveFromCart,
+    // handleCheckout, handlePlaceOrder, handleAdminLogin, handleAdminLogout,
+    // handleSaveProduct, handleDeleteProduct, handleUpdateOrderStatus
+
     const handleNavigate = (newView) => setView(newView);
 
     const handleAddToCart = (productToAdd) => {
@@ -503,7 +42,6 @@ export default function App() {
             setNotification('This item is out of stock.');
             return;
         }
-
         setCartItems(prevItems => {
             const itemInCart = prevItems.find(item => item.id === productToAdd.id);
             if (itemInCart) {
@@ -522,12 +60,10 @@ export default function App() {
     
     const handleUpdateCartQuantity = (productId, newQuantity) => {
         const productInStock = products.find(p => p.id === productId);
-
         if (newQuantity <= 0) {
             handleRemoveFromCart(productId);
             return;
         }
-        
         if (newQuantity > productInStock.stock) {
             setNotification(`Only ${productInStock.stock} items available.`);
             setCartItems(prevItems => prevItems.map(item =>
@@ -535,7 +71,6 @@ export default function App() {
             ));
             return;
         }
-
         setCartItems(prevItems => prevItems.map(item =>
             item.id === productId ? { ...item, quantity: newQuantity } : item
         ));
@@ -546,19 +81,29 @@ export default function App() {
         setNotification('Item removed from cart.');
     };
 
-
-    const handleCheckout = () => {
+    const handleCheckout = (total) => {
         if (cartItems.length > 0) {
+            setCheckoutTotal(total);
             setIsCheckoutModalOpen(true);
         }
     };
 
     const handlePlaceOrder = ({ customerDetails, paymentMethod }) => {
+        const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        const taxAmount = cartItems.reduce((sum, item) => {
+            if (item.taxable) {
+                return sum + (item.price * item.quantity * TAX_RATE);
+            }
+            return sum;
+        }, 0);
+        
         const newOrder = {
             id: Date.now(),
             orderId: `ORD-${Date.now().toString().slice(-6)}`,
-            items: cartItems.map(item => ({ productId: item.id, name: item.name, quantity: item.quantity, price: item.price })),
-            totalAmount: cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+            items: cartItems.map(item => ({ productId: item.id, name: item.name, quantity: item.quantity, price: item.price, taxable: item.taxable })),
+            subtotal,
+            taxAmount,
+            totalAmount: subtotal + taxAmount,
             customerDetails,
             paymentMethod,
             paymentStatus: paymentMethod === 'stripe' ? 'Paid' : 'Pending',
@@ -588,12 +133,17 @@ export default function App() {
 
     const handleSaveProduct = (productData) => {
         setProducts(prev => {
+            const parsedData = {
+                ...productData,
+                price: parseFloat(productData.price),
+                stock: parseInt(productData.stock),
+                lowStockThreshold: parseInt(productData.lowStockThreshold),
+                taxable: !!productData.taxable
+            };
             if (productData.id) {
-                return prev.map(p => p.id === productData.id ? { ...p, ...productData, price: parseFloat(productData.price), stock: parseInt(productData.stock), lowStockThreshold: parseInt(productData.lowStockThreshold) } : p);
-            } else {
-                const newProduct = { ...productData, id: Date.now(), price: parseFloat(productData.price), stock: parseInt(productData.stock), lowStockThreshold: parseInt(productData.lowStockThreshold) };
-                return [newProduct, ...prev];
+                return prev.map(p => p.id === productData.id ? parsedData : p);
             }
+            return [{ ...parsedData, id: Date.now() }, ...prev];
         });
         setNotification(productData.id ? 'Product updated!' : 'Product added!');
     };
@@ -610,7 +160,6 @@ export default function App() {
         setNotification(`Order ${orderId} marked as ${newStatus}.`);
     };
 
-    // RENDER LOGIC
     const renderView = () => {
         switch (view) {
             case 'cart':
@@ -626,7 +175,7 @@ export default function App() {
     };
 
     return (
-        <div className="bg-slate-50 min-h-screen font-sans text-gray-800">
+        <div className="text-gray-800">
             <Header onNavigate={handleNavigate} cartCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)} />
             
             {notification && (
@@ -639,37 +188,13 @@ export default function App() {
                 {renderView()}
             </main>
             
-            {isCheckoutModalOpen && <CheckoutModal onClose={() => setIsCheckoutModalOpen(false)} onPlaceOrder={handlePlaceOrder} total={cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)} />}
+            {isCheckoutModalOpen && <CheckoutModal onClose={() => setIsCheckoutModalOpen(false)} onPlaceOrder={handlePlaceOrder} total={checkoutTotal} />}
 
             <footer className="text-center py-10 mt-16 border-t border-gray-200">
                 <p className="text-gray-500">&copy; {new Date().getFullYear()} HalalFresh. Built with 💚.</p>
             </footer>
-            
-            <style>{`
-              @keyframes fade-in-out {
-                0% { opacity: 0; transform: translateY(-20px); }
-                15% { opacity: 1; transform: translateY(0); }
-                85% { opacity: 1; transform: translateY(0); }
-                100% { opacity: 0; transform: translateY(-20px); }
-              }
-              .animate-fade-in-out {
-                animation: fade-in-out 3s ease-in-out forwards;
-              }
-              @keyframes fade-in {
-                from { opacity: 0; }
-                to { opacity: 1; }
-              }
-              .animate-fade-in {
-                animation: fade-in 0.3s ease-out forwards;
-              }
-              @keyframes scale-in {
-                from { transform: scale(0.95); opacity: 0; }
-                to { transform: scale(1); opacity: 1; }
-              }
-              .animate-scale-in {
-                animation: scale-in 0.3s ease-out forwards;
-              }
-            `}</style>
         </div>
     );
 }
+
+export default App;
