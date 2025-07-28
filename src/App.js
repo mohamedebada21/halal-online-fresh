@@ -29,11 +29,6 @@ function App() {
         }
     }, [notification]);
 
-    // ... (All the handle... functions from the previous version go here) ...
-    // handleNavigate, handleAddToCart, handleUpdateCartQuantity, handleRemoveFromCart,
-    // handleCheckout, handlePlaceOrder, handleAdminLogin, handleAdminLogout,
-    // handleSaveProduct, handleDeleteProduct, handleUpdateOrderStatus
-
     const handleNavigate = (newView) => setView(newView);
 
     const handleAddToCart = (productToAdd) => {
