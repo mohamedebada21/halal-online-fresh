@@ -19,7 +19,7 @@ const initialOrders = [
 
 
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// HELPER COMPONENTS
+// UI HELPER COMPONENTS
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 // Simple Icon component for UI clarity
@@ -38,12 +38,12 @@ const Icon = ({ name, className }) => {
 
 // Custom Modal component
 const Modal = ({ children, onClose, title }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md m-4">
-            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-                <h3 className="text-2xl font-bold text-gray-800">{title}</h3>
-                <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
-                    <Icon name="close" className="w-8 h-8"/>
+    <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 animate-fade-in">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md m-4 transform transition-all duration-300 scale-95 opacity-0 animate-scale-in">
+            <div className="p-5 border-b border-gray-200 flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-800">{title}</h3>
+                <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100">
+                    <Icon name="close" className="w-6 h-6"/>
                 </button>
             </div>
             <div className="p-6">
@@ -60,26 +60,28 @@ const Modal = ({ children, onClose, title }) => (
 
 // Header Component
 const Header = ({ onNavigate, cartCount }) => (
-    <header className="bg-white/80 backdrop-blur-lg shadow-md sticky top-0 z-40">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div className="text-3xl font-bold text-gray-800 cursor-pointer" onClick={() => onNavigate('shop')}>
-                Halal<span className="text-green-600">Fresh</span> 🍉
+    <header className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-40 border-b border-gray-200">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+                <div className="text-3xl font-bold text-gray-800 cursor-pointer" onClick={() => onNavigate('shop')}>
+                    Halal<span className="text-green-600">Fresh</span><span className="text-red-500">🍉</span>
+                </div>
+                <nav className="flex items-center space-x-2 sm:space-x-4">
+                    <button onClick={() => onNavigate('shop')} className="flex items-center space-x-2 text-gray-500 hover:text-green-600 font-semibold transition-colors px-3 py-2 rounded-lg hover:bg-green-50">
+                        <Icon name="shop" className="w-5 h-5" />
+                        <span className="hidden sm:inline">Shop</span>
+                    </button>
+                    <button onClick={() => onNavigate('cart')} className="flex items-center space-x-2 text-gray-500 hover:text-green-600 font-semibold transition-colors relative px-3 py-2 rounded-lg hover:bg-green-50">
+                        <Icon name="cart" className="w-5 h-5" />
+                        <span className="hidden sm:inline">Cart</span>
+                        {cartCount > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">{cartCount}</span>}
+                    </button>
+                    <button onClick={() => onNavigate('admin')} className="flex items-center space-x-2 text-gray-500 hover:text-green-600 font-semibold transition-colors px-3 py-2 rounded-lg hover:bg-green-50">
+                        <Icon name="admin" className="w-5 h-5" />
+                        <span className="hidden sm:inline">Admin</span>
+                    </button>
+                </nav>
             </div>
-            <nav className="flex items-center space-x-4">
-                <button onClick={() => onNavigate('shop')} className="flex items-center space-x-2 text-gray-600 hover:text-green-600 transition-colors">
-                    <Icon name="shop" className="w-6 h-6" />
-                    <span className="hidden sm:inline">Shop</span>
-                </button>
-                <button onClick={() => onNavigate('cart')} className="flex items-center space-x-2 text-gray-600 hover:text-green-600 transition-colors relative">
-                    <Icon name="cart" className="w-6 h-6" />
-                    <span className="hidden sm:inline">Cart</span>
-                    {cartCount > 0 && <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{cartCount}</span>}
-                </button>
-                <button onClick={() => onNavigate('admin')} className="flex items-center space-x-2 text-gray-600 hover:text-green-600 transition-colors">
-                    <Icon name="admin" className="w-6 h-6" />
-                    <span className="hidden sm:inline">Admin</span>
-                </button>
-            </nav>
         </div>
     </header>
 );
@@ -90,21 +92,21 @@ const ProductCard = ({ product, onAddToCart }) => {
     const isOutOfStock = product.stock === 0;
 
     return (
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 group">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden transform hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group">
             <div className="relative">
                 <img src={product.imageUrl} alt={product.name} className="w-full h-48 object-cover" onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/400x400/cccccc/FFFFFF?text=Image+Not+Found'; }}/>
-                {isLowStock && !isOutOfStock && <span className="absolute top-2 left-2 bg-yellow-400 text-yellow-800 text-xs font-bold px-2 py-1 rounded-full">Low Stock</span>}
-                {isOutOfStock && <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">Out of Stock</span>}
+                {isLowStock && !isOutOfStock && <span className="absolute top-3 left-3 bg-yellow-400 text-yellow-900 text-xs font-bold px-2.5 py-1 rounded-full">Low Stock</span>}
+                {isOutOfStock && <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">Out of Stock</span>}
             </div>
-            <div className="p-4 flex flex-col h-full">
-                <h3 className="text-lg font-bold text-gray-800">{product.name}</h3>
-                <p className="text-gray-500 text-sm mt-1 flex-grow">{product.description}</p>
+            <div className="p-5 flex flex-col flex-grow">
+                <h3 className="text-lg font-bold text-gray-800 truncate">{product.name}</h3>
+                <p className="text-gray-500 text-sm mt-1 flex-grow h-10">{product.description}</p>
                 <div className="flex justify-between items-center mt-4">
-                    <p className="text-xl font-black text-green-600">${product.price.toFixed(2)}</p>
+                    <p className="text-2xl font-black text-green-600">${product.price.toFixed(2)}</p>
                     <button 
                         onClick={() => onAddToCart(product)}
                         disabled={isOutOfStock}
-                        className={`px-4 py-2 rounded-lg font-bold text-white transition-colors duration-300 ${isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'}`}
+                        className={`px-5 py-2.5 rounded-lg font-bold text-sm text-white transition-all duration-300 shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${isOutOfStock ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600 focus:ring-red-500 transform hover:scale-105'}`}
                     >
                         {isOutOfStock ? 'Sold Out' : 'Add to Cart'}
                     </button>
@@ -116,7 +118,7 @@ const ProductCard = ({ product, onAddToCart }) => {
 
 // Product List Component
 const ProductList = ({ products, onAddToCart }) => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {products.map(product => (
             <ProductCard key={product.id} product={product} onAddToCart={onAddToCart} />
         ))}
@@ -128,41 +130,53 @@ const CartView = ({ cartItems, onUpdateQuantity, onRemoveItem, onCheckout }) => 
     const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     return (
-        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">Your Cart</h2>
+        <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 max-w-4xl mx-auto">
+            <h2 className="text-3xl font-extrabold text-gray-800 mb-6 border-b pb-4">Your Shopping Cart</h2>
             {cartItems.length === 0 ? (
-                <p className="text-gray-500">Your cart is empty. Start shopping to add items!</p>
+                <div className="text-center py-12">
+                    <Icon name="cart" className="w-16 h-16 mx-auto text-gray-300" />
+                    <p className="text-gray-500 mt-4 text-lg">Your cart is empty.</p>
+                    <p className="text-gray-400">Looks like you haven't added anything to your cart yet.</p>
+                </div>
             ) : (
                 <div>
-                    <div className="space-y-4">
+                    <div className="divide-y divide-gray-200">
                         {cartItems.map(item => (
-                            <div key={item.id} className="flex items-center justify-between border-b pb-4">
-                                <div className="flex items-center space-x-4">
-                                    <img src={item.imageUrl} alt={item.name} className="w-16 h-16 rounded-lg object-cover" />
+                            <div key={item.id} className="flex flex-col sm:flex-row items-center justify-between py-4 gap-4">
+                                <div className="flex items-center space-x-4 flex-grow">
+                                    <img src={item.imageUrl} alt={item.name} className="w-20 h-20 rounded-lg object-cover shadow-sm" />
                                     <div>
-                                        <h3 className="font-bold text-gray-800">{item.name}</h3>
+                                        <h3 className="font-bold text-gray-800 text-lg">{item.name}</h3>
                                         <p className="text-gray-500">${item.price.toFixed(2)}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center space-x-4">
+                                <div className="flex items-center space-x-4 sm:space-x-6">
                                     <div className="flex items-center border rounded-lg">
-                                        <button onClick={() => onUpdateQuantity(item.id, item.quantity - 1)} className="px-3 py-1 text-lg font-bold text-gray-600 hover:bg-gray-100 rounded-l-lg">-</button>
-                                        <span className="px-4 py-1 text-gray-800">{item.quantity}</span>
-                                        <button onClick={() => onUpdateQuantity(item.id, item.quantity + 1)} className="px-3 py-1 text-lg font-bold text-gray-600 hover:bg-gray-100 rounded-r-lg">+</button>
+                                        <button onClick={() => onUpdateQuantity(item.id, item.quantity - 1)} className="px-3 py-1 text-xl font-bold text-gray-600 hover:bg-gray-100 rounded-l-lg transition">-</button>
+                                        <span className="px-5 py-1 text-gray-800 font-semibold">{item.quantity}</span>
+                                        <button onClick={() => onUpdateQuantity(item.id, item.quantity + 1)} className="px-3 py-1 text-xl font-bold text-gray-600 hover:bg-gray-100 rounded-r-lg transition">+</button>
                                     </div>
-                                    <p className="font-bold w-20 text-right">${(item.price * item.quantity).toFixed(2)}</p>
-                                    <button onClick={() => onRemoveItem(item.id)} className="text-red-500 hover:text-red-700">
+                                    <p className="font-bold w-24 text-right text-lg">${(item.price * item.quantity).toFixed(2)}</p>
+                                    <button onClick={() => onRemoveItem(item.id)} className="text-gray-400 hover:text-red-500 transition p-1 rounded-full hover:bg-gray-100">
                                         <Icon name="trash" className="w-6 h-6" />
                                     </button>
                                 </div>
                             </div>
                         ))}
                     </div>
-                    <div className="mt-8 flex flex-col md:flex-row justify-between items-center">
-                        <p className="text-2xl font-bold text-gray-800">Total: <span className="text-green-600">${total.toFixed(2)}</span></p>
-                        <button onClick={onCheckout} className="w-full md:w-auto mt-4 md:mt-0 bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105">
-                            Proceed to Checkout
-                        </button>
+                    <div className="mt-8 pt-6 border-t-2 border-dashed">
+                        <div className="flex justify-end items-center">
+                            <div className="text-right">
+                                <p className="text-gray-500">Subtotal</p>
+                                <p className="text-3xl font-extrabold text-gray-800">${total.toFixed(2)}</p>
+                                <p className="text-sm text-gray-400">Taxes and shipping calculated at checkout.</p>
+                            </div>
+                        </div>
+                         <div className="mt-6 flex justify-end">
+                            <button onClick={onCheckout} className="w-full sm:w-auto bg-green-600 text-white font-bold py-3 px-10 rounded-lg shadow-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                Proceed to Checkout
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -190,30 +204,30 @@ const CheckoutModal = ({ onClose, onPlaceOrder, total }) => {
     };
 
     return (
-        <Modal onClose={onClose} title="Checkout">
+        <Modal onClose={onClose} title="Complete Your Order">
             <form onSubmit={handleSubmit}>
-                <h4 className="text-lg font-bold mb-4 text-gray-700">Delivery Details</h4>
+                <h4 className="text-lg font-bold mb-4 text-gray-700">1. Delivery Details</h4>
                 <div className="space-y-4">
-                    <input type="text" name="name" placeholder="Full Name" value={customerDetails.name} onChange={handleInputChange} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition" required />
-                    <input type="tel" name="phone" placeholder="Phone Number" value={customerDetails.phone} onChange={handleInputChange} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition" required />
-                    <input type="text" name="address" placeholder="Delivery Address" value={customerDetails.address} onChange={handleInputChange} className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition" required />
+                    <input type="text" name="name" placeholder="Full Name" value={customerDetails.name} onChange={handleInputChange} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition" required />
+                    <input type="tel" name="phone" placeholder="Phone Number" value={customerDetails.phone} onChange={handleInputChange} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition" required />
+                    <input type="text" name="address" placeholder="Delivery Address" value={customerDetails.address} onChange={handleInputChange} className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition" required />
                 </div>
 
-                <h4 className="text-lg font-bold mt-8 mb-4 text-gray-700">Payment Method</h4>
+                <h4 className="text-lg font-bold mt-8 mb-4 text-gray-700">2. Payment Method</h4>
                 <div className="space-y-3">
-                    <label className={`flex items-center p-4 border rounded-lg cursor-pointer transition ${paymentMethod === 'cod' ? 'border-green-500 ring-2 ring-green-500' : ''}`}>
-                        <input type="radio" name="paymentMethod" value="cod" checked={paymentMethod === 'cod'} onChange={(e) => setPaymentMethod(e.target.value)} className="hidden" />
+                    <label className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition ${paymentMethod === 'cod' ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}>
+                        <input type="radio" name="paymentMethod" value="cod" checked={paymentMethod === 'cod'} onChange={(e) => setPaymentMethod(e.target.value)} className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300" />
                         <span className="ml-3 font-semibold text-gray-800">Cash on Delivery (COD)</span>
                     </label>
-                    <label className={`flex items-center p-4 border rounded-lg cursor-pointer transition ${paymentMethod === 'stripe' ? 'border-green-500 ring-2 ring-green-500' : ''}`}>
-                        <input type="radio" name="paymentMethod" value="stripe" checked={paymentMethod === 'stripe'} onChange={(e) => setPaymentMethod(e.target.value)} className="hidden" />
-                        <span className="ml-3 font-semibold text-gray-800">Credit/Debit Card (via Stripe)</span>
+                    <label className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition ${paymentMethod === 'stripe' ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}>
+                        <input type="radio" name="paymentMethod" value="stripe" checked={paymentMethod === 'stripe'} onChange={(e) => setPaymentMethod(e.target.value)} className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300" />
+                        <span className="ml-3 font-semibold text-gray-800">Credit/Debit Card (Stripe)</span>
                         <span className="ml-auto text-sm text-gray-500">(Not implemented)</span>
                     </label>
                 </div>
 
-                <div className="mt-8 text-right">
-                    <button type="submit" className="w-full bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 transition-all duration-300">
+                <div className="mt-8">
+                    <button type="submit" className="w-full bg-green-600 text-white font-bold py-3.5 px-8 rounded-lg shadow-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                         Place Order for ${total.toFixed(2)}
                     </button>
                 </div>
@@ -231,25 +245,22 @@ const AdminLogin = ({ onLogin }) => {
     const [password, setPassword] = useState('');
     const handleSubmit = (e) => {
         e.preventDefault();
-        // In a real app, this would be a secure API call.
-        // For this demo, any password works.
-        if (password) {
-            onLogin();
-        }
+        if (password) { onLogin(); }
     };
 
     return (
-        <div className="max-w-md mx-auto mt-10 bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">Admin Login</h2>
+        <div className="max-w-md mx-auto mt-12 bg-white rounded-2xl shadow-xl p-8">
+            <h2 className="text-3xl font-bold text-center text-gray-800 mb-2">Admin Access</h2>
+            <p className="text-center text-gray-500 mb-8">Please enter your password to continue.</p>
             <form onSubmit={handleSubmit}>
                 <input
                     type="password"
-                    placeholder="Enter password"
+                    placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
                 />
-                <button type="submit" className="w-full mt-6 bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-green-700 transition-colors">
+                <button type="submit" className="w-full mt-6 bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                     Login
                 </button>
             </form>
@@ -279,30 +290,26 @@ const ProductManagement = ({ products, onSaveProduct, onDeleteProduct }) => {
     
     const ProductForm = ({ product, onSave, onCancel }) => {
         const [formData, setFormData] = useState(product);
-
-        const handleChange = (e) => {
-            const { name, value } = e.target;
-            setFormData(prev => ({ ...prev, [name]: value }));
-        };
-
-        const handleSubmit = (e) => {
-            e.preventDefault();
-            onSave(formData);
-        };
+        const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        const handleSubmit = (e) => { e.preventDefault(); onSave(formData); };
 
         return (
-            <Modal onClose={onCancel} title={product.id ? 'Edit Product' : 'Add Product'}>
+            <Modal onClose={onCancel} title={product.id ? 'Edit Product' : 'Add New Product'}>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <input name="name" value={formData.name} onChange={handleChange} placeholder="Product Name" className="w-full p-3 border rounded-lg" required />
-                    <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Description" className="w-full p-3 border rounded-lg" required />
-                    <input name="category" value={formData.category} onChange={handleChange} placeholder="Category" className="w-full p-3 border rounded-lg" required />
-                    <input name="price" type="number" step="0.01" value={formData.price} onChange={handleChange} placeholder="Price" className="w-full p-3 border rounded-lg" required />
-                    <input name="stock" type="number" value={formData.stock} onChange={handleChange} placeholder="Stock" className="w-full p-3 border rounded-lg" required />
-                    <input name="lowStockThreshold" type="number" value={formData.lowStockThreshold} onChange={handleChange} placeholder="Low Stock Threshold" className="w-full p-3 border rounded-lg" required />
-                    <input name="imageUrl" value={formData.imageUrl} onChange={handleChange} placeholder="Image URL" className="w-full p-3 border rounded-lg" />
+                    <input name="name" value={formData.name} onChange={handleChange} placeholder="Product Name" className="w-full p-3 border border-gray-300 rounded-lg" required />
+                    <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Description" className="w-full p-3 border border-gray-300 rounded-lg" required />
+                    <div className="grid grid-cols-2 gap-4">
+                        <input name="category" value={formData.category} onChange={handleChange} placeholder="Category" className="w-full p-3 border border-gray-300 rounded-lg" required />
+                        <input name="price" type="number" step="0.01" value={formData.price} onChange={handleChange} placeholder="Price" className="w-full p-3 border border-gray-300 rounded-lg" required />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <input name="stock" type="number" value={formData.stock} onChange={handleChange} placeholder="Stock" className="w-full p-3 border border-gray-300 rounded-lg" required />
+                        <input name="lowStockThreshold" type="number" value={formData.lowStockThreshold} onChange={handleChange} placeholder="Low Stock Threshold" className="w-full p-3 border border-gray-300 rounded-lg" required />
+                    </div>
+                    <input name="imageUrl" value={formData.imageUrl} onChange={handleChange} placeholder="Image URL" className="w-full p-3 border border-gray-300 rounded-lg" />
                     <div className="flex justify-end space-x-4 pt-4">
-                        <button type="button" onClick={onCancel} className="px-6 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300">Cancel</button>
-                        <button type="submit" className="px-6 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 font-bold">Save Product</button>
+                        <button type="button" onClick={onCancel} className="px-6 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 font-semibold transition">Cancel</button>
+                        <button type="submit" className="px-6 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 font-bold transition">Save Product</button>
                     </div>
                 </form>
             </Modal>
@@ -310,35 +317,35 @@ const ProductManagement = ({ products, onSaveProduct, onDeleteProduct }) => {
     };
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold text-gray-800">Products</h3>
-                <button onClick={() => handleOpenModal()} className="bg-green-600 text-white font-bold py-2 px-4 rounded-lg flex items-center space-x-2 hover:bg-green-700">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200/80">
+            <div className="flex justify-between items-center mb-5">
+                <h3 className="text-xl font-bold text-gray-800">Product Management</h3>
+                <button onClick={() => handleOpenModal()} className="bg-green-600 text-white font-bold py-2 px-4 rounded-lg flex items-center space-x-2 hover:bg-green-700 transition-colors shadow-sm">
                     <Icon name="plus" className="w-5 h-5" />
                     <span>Add Product</span>
                 </button>
             </div>
-            <div className="bg-white rounded-lg shadow overflow-x-auto">
-                <table className="w-full text-sm text-left text-gray-500">
+            <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left text-gray-600">
                     <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                         <tr>
                             <th scope="col" className="px-6 py-3">Name</th>
                             <th scope="col" className="px-6 py-3">Category</th>
-                            <th scope="col" className="px-6 py-3">Price</th>
-                            <th scope="col" className="px-6 py-3">Stock</th>
-                            <th scope="col" className="px-6 py-3">Actions</th>
+                            <th scope="col" className="px-6 py-3 text-right">Price</th>
+                            <th scope="col" className="px-6 py-3 text-center">Stock</th>
+                            <th scope="col" className="px-6 py-3 text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y">
                         {products.map(p => (
-                            <tr key={p.id} className="bg-white border-b hover:bg-gray-50">
+                            <tr key={p.id} className="bg-white hover:bg-gray-50/50 transition">
                                 <td className="px-6 py-4 font-medium text-gray-900">{p.name}</td>
                                 <td className="px-6 py-4">{p.category}</td>
-                                <td className="px-6 py-4">${p.price.toFixed(2)}</td>
-                                <td className="px-6 py-4">{p.stock}</td>
-                                <td className="px-6 py-4 flex space-x-2">
-                                    <button onClick={() => handleOpenModal(p)} className="text-blue-600 hover:text-blue-800"><Icon name="edit" className="w-5 h-5"/></button>
-                                    <button onClick={() => onDeleteProduct(p.id)} className="text-red-600 hover:text-red-800"><Icon name="trash" className="w-5 h-5"/></button>
+                                <td className="px-6 py-4 text-right">${p.price.toFixed(2)}</td>
+                                <td className="px-6 py-4 text-center">{p.stock}</td>
+                                <td className="px-6 py-4 flex justify-center space-x-3">
+                                    <button onClick={() => handleOpenModal(p)} className="text-blue-600 hover:text-blue-800 p-1 rounded-full hover:bg-blue-100 transition"><Icon name="edit" className="w-5 h-5"/></button>
+                                    <button onClick={() => onDeleteProduct(p.id)} className="text-red-600 hover:text-red-800 p-1 rounded-full hover:bg-red-100 transition"><Icon name="trash" className="w-5 h-5"/></button>
                                 </td>
                             </tr>
                         ))}
@@ -352,33 +359,33 @@ const ProductManagement = ({ products, onSaveProduct, onDeleteProduct }) => {
 
 // Admin: Order Management
 const OrderManagement = ({ orders, onUpdateOrderStatus }) => (
-    <div>
-        <h3 className="text-2xl font-bold text-gray-800 mb-6">Orders</h3>
-        <div className="space-y-6">
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200/80">
+        <h3 className="text-xl font-bold text-gray-800 mb-5">Order Fulfillment</h3>
+        <div className="space-y-4">
             {orders.sort((a, b) => b.id - a.id).map(order => (
-                <div key={order.id} className="bg-white rounded-lg shadow p-6">
+                <div key={order.id} className="bg-gray-50/70 rounded-lg p-4 border border-gray-200">
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className="font-bold text-lg text-gray-900">{order.orderId}</p>
+                            <p className="font-bold text-md text-gray-900">{order.orderId}</p>
                             <p className="text-sm text-gray-500">{order.customerDetails.name} - {order.customerDetails.address}</p>
                             <p className="text-sm text-gray-500">Delivery: {order.deliveryDate.toLocaleDateString()}</p>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right flex-shrink-0">
                            <p className="font-bold text-lg text-green-600">${order.totalAmount.toFixed(2)}</p>
-                           <p className={`text-sm font-semibold ${order.paymentStatus === 'Paid' ? 'text-green-500' : 'text-yellow-500'}`}>{order.paymentMethod.toUpperCase()} - {order.paymentStatus || 'Pending'}</p>
+                           <p className={`text-xs font-semibold px-2 py-0.5 rounded-full inline-block ${order.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{order.paymentMethod.toUpperCase()} - {order.paymentStatus || 'Pending'}</p>
                         </div>
                     </div>
-                    <div className="mt-4 border-t pt-4">
-                        <ul className="text-sm space-y-1">
+                    <div className="mt-4 border-t pt-3">
+                        <ul className="text-sm space-y-1 text-gray-600">
                             {order.items.map(item => (
-                                <li key={item.productId}>{item.quantity} x {item.name}</li>
+                                <li key={item.productId}><span className="font-semibold">{item.quantity}x</span> {item.name}</li>
                             ))}
                         </ul>
                     </div>
                     <div className="mt-4 flex justify-end items-center space-x-4">
-                        <span className={`px-3 py-1 text-sm font-bold rounded-full ${order.orderStatus === 'Fulfilled' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{order.orderStatus}</span>
+                        <span className={`px-3 py-1 text-sm font-bold rounded-full ${order.orderStatus === 'Fulfilled' ? 'bg-green-200 text-green-900' : 'bg-yellow-200 text-yellow-900'}`}>{order.orderStatus}</span>
                         {order.orderStatus === 'Pending' && (
-                            <button onClick={() => onUpdateOrderStatus(order.id, 'Fulfilled')} className="bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded-lg hover:bg-blue-600">
+                            <button onClick={() => onUpdateOrderStatus(order.id, 'Fulfilled')} className="bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition shadow-sm">
                                 Mark as Fulfilled
                             </button>
                         )}
@@ -391,10 +398,10 @@ const OrderManagement = ({ orders, onUpdateOrderStatus }) => (
 
 // Admin: Inventory Management
 const InventoryManagement = ({ products }) => (
-     <div>
-        <h3 className="text-2xl font-bold text-gray-800 mb-6">Inventory Overview</h3>
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-            <table className="w-full text-sm text-left text-gray-500">
+     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200/80">
+        <h3 className="text-xl font-bold text-gray-800 mb-5">Inventory Overview</h3>
+        <div className="overflow-hidden">
+            <table className="w-full text-sm text-left text-gray-600">
                 <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                     <tr>
                         <th scope="col" className="px-6 py-3">Product</th>
@@ -402,21 +409,21 @@ const InventoryManagement = ({ products }) => (
                         <th scope="col" className="px-6 py-3">Status</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y">
                     {products.sort((a,b) => a.stock - b.stock).map(p => {
                         const isLowStock = p.stock > 0 && p.stock <= p.lowStockThreshold;
                         const isOutOfStock = p.stock === 0;
-                        let statusColor = 'text-green-600';
+                        let statusClasses = 'bg-green-100 text-green-800';
                         let statusText = 'In Stock';
-                        if (isLowStock) { statusColor = 'text-yellow-600'; statusText = 'Low Stock'; }
-                        if (isOutOfStock) { statusColor = 'text-red-600'; statusText = 'Out of Stock'; }
+                        if (isLowStock) { statusClasses = 'bg-yellow-100 text-yellow-800'; statusText = 'Low Stock'; }
+                        if (isOutOfStock) { statusClasses = 'bg-red-100 text-red-800'; statusText = 'Out of Stock'; }
 
                         return (
-                            <tr key={p.id} className="bg-white border-b hover:bg-gray-50">
+                            <tr key={p.id} className="bg-white hover:bg-gray-50/50 transition">
                                 <td className="px-6 py-4 font-medium text-gray-900">{p.name}</td>
                                 <td className="px-6 py-4 text-center font-mono font-bold text-lg">{p.stock}</td>
                                 <td className="px-6 py-4">
-                                    <span className={`font-bold ${statusColor}`}>{statusText}</span>
+                                    <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${statusClasses}`}>{statusText}</span>
                                 </td>
                             </tr>
                         );
@@ -434,28 +441,27 @@ const AdminDashboard = ({ products, orders, onSaveProduct, onDeleteProduct, onUp
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'orders':
-                return <OrderManagement orders={orders} onUpdateOrderStatus={onUpdateOrderStatus} />;
-            case 'inventory':
-                return <InventoryManagement products={products} />;
-            case 'products':
-            default:
-                return <ProductManagement products={products} onSaveProduct={onSaveProduct} onDeleteProduct={onDeleteProduct} />;
+            case 'orders': return <OrderManagement orders={orders} onUpdateOrderStatus={onUpdateOrderStatus} />;
+            case 'inventory': return <InventoryManagement products={products} />;
+            case 'products': default: return <ProductManagement products={products} onSaveProduct={onSaveProduct} onDeleteProduct={onDeleteProduct} />;
         }
     };
 
     return (
-        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-b pb-4">
-                <h2 className="text-3xl font-bold text-gray-800">Admin Dashboard</h2>
-                <button onClick={onLogout} className="mt-4 md:mt-0 bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600">Logout</button>
+        <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+                <div>
+                    <h2 className="text-3xl font-extrabold text-gray-800">Admin Dashboard</h2>
+                    <p className="text-gray-500 mt-1">Manage your store's products, orders, and inventory.</p>
+                </div>
+                <button onClick={onLogout} className="mt-4 md:mt-0 bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600 transition shadow-sm">Logout</button>
             </div>
-            <div className="flex flex-col md:flex-row gap-8">
-                <aside className="md:w-1/4">
-                    <nav className="flex flex-row md:flex-col space-x-2 md:space-x-0 md:space-y-2">
-                        <button onClick={() => setActiveTab('products')} className={`w-full text-left p-3 rounded-lg font-semibold transition ${activeTab === 'products' ? 'bg-green-100 text-green-800' : 'hover:bg-gray-100'}`}>Products</button>
-                        <button onClick={() => setActiveTab('orders')} className={`w-full text-left p-3 rounded-lg font-semibold transition ${activeTab === 'orders' ? 'bg-green-100 text-green-800' : 'hover:bg-gray-100'}`}>Orders</button>
-                        <button onClick={() => setActiveTab('inventory')} className={`w-full text-left p-3 rounded-lg font-semibold transition ${activeTab === 'inventory' ? 'bg-green-100 text-green-800' : 'hover:bg-gray-100'}`}>Inventory</button>
+            <div className="flex flex-col lg:flex-row gap-8">
+                <aside className="lg:w-1/4">
+                    <nav className="flex flex-row lg:flex-col space-x-1 lg:space-x-0 lg:space-y-1 bg-gray-100 p-2 rounded-xl">
+                        <button onClick={() => setActiveTab('products')} className={`w-full text-left px-4 py-2.5 rounded-lg font-semibold transition text-sm ${activeTab === 'products' ? 'bg-white text-green-700 shadow-sm' : 'text-gray-600 hover:bg-white/60 hover:text-green-700'}`}>Products</button>
+                        <button onClick={() => setActiveTab('orders')} className={`w-full text-left px-4 py-2.5 rounded-lg font-semibold transition text-sm ${activeTab === 'orders' ? 'bg-white text-green-700 shadow-sm' : 'text-gray-600 hover:bg-white/60 hover:text-green-700'}`}>Orders</button>
+                        <button onClick={() => setActiveTab('inventory')} className={`w-full text-left px-4 py-2.5 rounded-lg font-semibold transition text-sm ${activeTab === 'inventory' ? 'bg-white text-green-700 shadow-sm' : 'text-gray-600 hover:bg-white/60 hover:text-green-700'}`}>Inventory</button>
                     </nav>
                 </aside>
                 <main className="flex-1">
@@ -501,7 +507,6 @@ export default function App() {
         setCartItems(prevItems => {
             const itemInCart = prevItems.find(item => item.id === productToAdd.id);
             if (itemInCart) {
-                // Check if adding another exceeds stock
                 if (itemInCart.quantity >= productInStock.stock) {
                     setNotification('Cannot add more than available stock.');
                     return prevItems;
@@ -549,25 +554,18 @@ export default function App() {
     };
 
     const handlePlaceOrder = ({ customerDetails, paymentMethod }) => {
-        // 1. Create the new order object
         const newOrder = {
             id: Date.now(),
             orderId: `ORD-${Date.now().toString().slice(-6)}`,
-            items: cartItems.map(item => ({
-                productId: item.id,
-                name: item.name,
-                quantity: item.quantity,
-                price: item.price
-            })),
+            items: cartItems.map(item => ({ productId: item.id, name: item.name, quantity: item.quantity, price: item.price })),
             totalAmount: cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
             customerDetails,
             paymentMethod,
-            paymentStatus: paymentMethod === 'stripe' ? 'Paid' : 'Pending', // Assume Stripe is pre-paid
+            paymentStatus: paymentMethod === 'stripe' ? 'Paid' : 'Pending',
             orderStatus: 'Pending',
-            deliveryDate: new Date(new Date().setDate(new Date().getDate() + 1)) // Next day delivery
+            deliveryDate: new Date(new Date().setDate(new Date().getDate() + 1))
         };
 
-        // 2. Update product stock
         setProducts(prevProducts => {
             const updatedProducts = [...prevProducts];
             cartItems.forEach(cartItem => {
@@ -578,32 +576,21 @@ export default function App() {
             });
             return updatedProducts;
         });
-
-        // 3. Add order to the list
         setOrders(prevOrders => [newOrder, ...prevOrders]);
-
-        // 4. Clear the cart
         setCartItems([]);
-
-        // 5. Close modal and show confirmation
         setIsCheckoutModalOpen(false);
         setNotification('Order placed successfully! Thank you!');
         setView('shop');
     };
 
-    const handleAdminLogin = () => {
-        setIsAdminLoggedIn(true);
-    };
-    
-    const handleAdminLogout = () => {
-        setIsAdminLoggedIn(false);
-    }
+    const handleAdminLogin = () => setIsAdminLoggedIn(true);
+    const handleAdminLogout = () => setIsAdminLoggedIn(false);
 
     const handleSaveProduct = (productData) => {
         setProducts(prev => {
-            if (productData.id) { // Editing existing product
+            if (productData.id) {
                 return prev.map(p => p.id === productData.id ? { ...p, ...productData, price: parseFloat(productData.price), stock: parseInt(productData.stock), lowStockThreshold: parseInt(productData.lowStockThreshold) } : p);
-            } else { // Adding new product
+            } else {
                 const newProduct = { ...productData, id: Date.now(), price: parseFloat(productData.price), stock: parseInt(productData.stock), lowStockThreshold: parseInt(productData.lowStockThreshold) };
                 return [newProduct, ...prev];
             }
@@ -639,24 +626,23 @@ export default function App() {
     };
 
     return (
-        <div className="bg-gray-50 min-h-screen font-sans text-gray-800">
+        <div className="bg-slate-50 min-h-screen font-sans text-gray-800">
             <Header onNavigate={handleNavigate} cartCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)} />
             
-            {/* Notification Popup */}
             {notification && (
-                <div className="fixed top-24 right-6 bg-green-600 text-white py-3 px-6 rounded-lg shadow-2xl z-50 animate-fade-in-out">
+                <div className="fixed top-20 right-5 bg-green-600 text-white py-3 px-6 rounded-lg shadow-2xl z-50 animate-fade-in-out">
                     {notification}
                 </div>
             )}
 
-            <main className="container mx-auto p-4 sm:p-6 md:p-8">
+            <main className="container mx-auto p-4 sm:p-6 lg:p-8">
                 {renderView()}
             </main>
             
             {isCheckoutModalOpen && <CheckoutModal onClose={() => setIsCheckoutModalOpen(false)} onPlaceOrder={handlePlaceOrder} total={cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)} />}
 
-            <footer className="text-center py-8 mt-12 border-t">
-                <p className="text-gray-500">&copy; {new Date().getFullYear()} HalalFresh. All Rights Reserved.</p>
+            <footer className="text-center py-10 mt-16 border-t border-gray-200">
+                <p className="text-gray-500">&copy; {new Date().getFullYear()} HalalFresh. Built with 💚.</p>
             </footer>
             
             <style>{`
@@ -668,6 +654,20 @@ export default function App() {
               }
               .animate-fade-in-out {
                 animation: fade-in-out 3s ease-in-out forwards;
+              }
+              @keyframes fade-in {
+                from { opacity: 0; }
+                to { opacity: 1; }
+              }
+              .animate-fade-in {
+                animation: fade-in 0.3s ease-out forwards;
+              }
+              @keyframes scale-in {
+                from { transform: scale(0.95); opacity: 0; }
+                to { transform: scale(1); opacity: 1; }
+              }
+              .animate-scale-in {
+                animation: scale-in 0.3s ease-out forwards;
               }
             `}</style>
         </div>
